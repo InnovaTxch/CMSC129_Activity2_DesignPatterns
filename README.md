@@ -27,62 +27,48 @@ Iba-iba sila ng structure, content, at visibility — so ang tanong is, sino ang
 ```mermaid
 classDiagram
     class FreedomWallPage {
-        +postCrush(type: String)
+        +handlePostSubmit(type, formData)
     }
-    class AnonymousPost {
-        +senderName: hidden
-        +message: String
-        +render()
-    }
-    class HintPost {
-        +hint: String
-        +clueCount: int
-        +render()
-    }
-    class RevealPost {
-        +senderName: visible
-        +mutualCheck: Boolean
-        +render()
-    }
-    FreedomWallPage ..> AnonymousPost : if type == "anonymous"
-    FreedomWallPage ..> HintPost : if type == "hint"
-    FreedomWallPage ..> RevealPost : if type == "reveal"
+
+    class AnonymousPost
+    class HintPost
+    class RevealPost
+
+    FreedomWallPage ..> AnonymousPost : creates if anonymous
+    FreedomWallPage ..> HintPost : creates if hint
+    FreedomWallPage ..> RevealPost : creates if reveal
 ```
 
 #### ✅ With Factory Method
 
 ```mermaid
 classDiagram
-    class FreedomWallPage {
-        +postCrush(type: String)
-    }
-    class CrushPostFactory {
-        +create(type: String) CrushPost
-    }
     class CrushPost {
         <<interface>>
         +render()
         +getVisibility()
     }
-    class AnonymousPost {
-        +senderName: hidden
-        +message: String
+
+    class AnonymousPost
+    class HintPost
+    class RevealPost
+
+    class CrushPostFactory {
+        +create(type, data) CrushPost
     }
-    class HintPost {
-        +hint: String
-        +clueCount: int
+
+    class FreedomWallPage {
+        +handlePostSubmit(type, formData)
     }
-    class RevealPost {
-        +senderName: visible
-        +mutualCheck: Boolean
-    }
-    FreedomWallPage --> CrushPostFactory : calls create()
-    CrushPostFactory ..> AnonymousPost : creates
-    CrushPostFactory ..> HintPost : creates
-    CrushPostFactory ..> RevealPost : creates
+
     AnonymousPost ..|> CrushPost
     HintPost ..|> CrushPost
     RevealPost ..|> CrushPost
+
+    FreedomWallPage --> CrushPostFactory : asks to create post
+    CrushPostFactory ..> AnonymousPost : creates
+    CrushPostFactory ..> HintPost : creates
+    CrushPostFactory ..> RevealPost : creates
 ```
 
 ---
@@ -99,78 +85,29 @@ classDiagram
 
 ```
 interface CrushPost:
-    render()        → PostCard
-    getVisibility() → String
+    render()
+    getVisibility()
 
 
-class AnonymousPost implements CrushPost:
-    senderName = "[hidden]"
-    message: String
-
-    constructor(message):
-        this.message = message
-
-    render():
-        return PostCard(
-            header    = "Someone has a crush on you...",
-            body      = this.message,
-            senderTag = "Anonymous"
-        )
-
-    getVisibility():
-        return "anonymous"
-
-
-class HintPost implements CrushPost:
-    hint: String
-    clueCount: int
-
-    constructor(hint, clueCount):
-        this.hint      = hint
-        this.clueCount = clueCount
-
-    render():
-        return PostCard(
-            header    = "You have a secret admirer...",
-            body      = "Hint: " + this.hint,
-            senderTag = "? (" + this.clueCount + " clues left)"
-        )
-
-    getVisibility():
-        return "hint"
-
-
-class RevealPost implements CrushPost:
-    senderName: String
-    targetName: String
-    mutualCheck = false
-
-    constructor(senderName, targetName):
-        this.senderName = senderName
-        this.targetName = targetName
-
-    render():
-        return PostCard(
-            header    = this.senderName + " has a crush on you!",
-            body      = "Do you feel the same? Tap to find out.",
-            senderTag = this.senderName,
-            action    = "Reveal Match"
-        )
-
-    getVisibility():
-        return "revealed"
+class AnonymousPost implements CrushPost
+class HintPost implements CrushPost
+class RevealPost implements CrushPost
 
 
 class CrushPostFactory:
-    create(type, params) → CrushPost:
-        if type == "anonymous":
-            return new AnonymousPost(params["message"])
-        else if type == "hint":
-            return new HintPost(params["hint"], params["clueCount"])
-        else if type == "reveal":
-            return new RevealPost(params["senderName"], params["targetName"])
-        else:
-            throw Error("Unknown post type: " + type)
+    create(type, data):
+        switch type:
+            case "anonymous":
+                return new AnonymousPost(data.message)
+
+            case "hint":
+                return new HintPost(data.hint, data.clueCount)
+
+            case "reveal":
+                return new RevealPost(data.senderName, data.targetName)
+
+            default:
+                throw Error("Unknown post type")
 
 
 class FreedomWallPage:
@@ -179,5 +116,5 @@ class FreedomWallPage:
 
         displayOnWall(post.render())
         saveToDatabase(post)
-        sendNotificationTo(formData["targetName"], post.getVisibility())
+        sendNotification(post.getVisibility())
 ```
