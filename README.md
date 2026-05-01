@@ -321,3 +321,178 @@ user = new PremiumStyle(user)
 
 user.display()
 ```
+
+---
+
+## 🔔 Design Pattern #3: Behavioral — Observer
+
+### Pattern
+
+**Observer**
+
+Applied to: **User notifications for likes, matches, and messages**
+
+### Concept in Conyo
+
+The Observer Pattern is parang “notify me when there’s a ganap” feature. Ginagamit siya when one main object has an update, and many other objects need to be notified automatically.
+
+Sa dating app, the `DatingAppEventSystem` is the main source of ganap. Kapag may user na nakareceive ng like, nagkaroon ng match, or may bagong message, the app does not manually update every notification feature one by one.
+
+Instead, mag-aannounce lang yung event system na “uy, there’s a ganap!” Then the observers, like push notifications, in-app notifications, email notifications, and chat updates, react on their own.
+
+### Visual Diagram
+
+#### ❌ Without Observer
+
+```mermaid
+classDiagram
+    class DatingAppLogic {
+        +receiveLike()
+        +createMatch()
+        +receiveMessage()
+        +sendPushNotification()
+        +updateInAppNotification()
+        +sendEmailNotification()
+        +refreshChatScreen()
+    }
+
+    class LikeFeature
+    class MatchFeature
+    class MessageFeature
+
+    DatingAppLogic <|-- LikeFeature
+    DatingAppLogic <|-- MatchFeature
+    DatingAppLogic <|-- MessageFeature
+```
+
+#### ✅ With Observer
+
+```mermaid
+classDiagram
+    class Subject {
+        <<interface>>
+        +subscribe(observer)
+        +unsubscribe(observer)
+        +notifyObservers(event)
+    }
+
+    class DatingAppEventSystem {
+        +subscribe(observer)
+        +unsubscribe(observer)
+        +notifyObservers(event)
+        +receiveLike()
+        +createMatch()
+        +receiveMessage()
+    }
+
+    class Observer {
+        <<interface>>
+        +update(event)
+    }
+
+    class PushNotification
+    class InAppNotification
+    class EmailNotification
+    class ChatUpdate
+
+    Subject <|.. DatingAppEventSystem
+    DatingAppEventSystem o-- Observer
+    Observer <|.. PushNotification
+    Observer <|.. InAppNotification
+    Observer <|.. EmailNotification
+    Observer <|.. ChatUpdate
+```
+
+### Why it Works Nga
+
+| Approach | Result |
+| --- | --- |
+| ✅ **With Observer** | The event system announces updates once, then all subscribed notification features react automatically. Adding a new notification channel only means adding another observer. |
+| ❌ **Without Observer** | The main dating app logic has to directly call every notification feature. Kapag may bagong notification type, the core logic gets edited again and again. |
+
+### Pseudocode
+
+```text
+interface Observer {
+    update(event, data)
+}
+
+interface Subject {
+    subscribe(observer)
+    unsubscribe(observer)
+    notifyObservers(event, data)
+}
+
+class DatingAppEventSystem implements Subject {
+    observers = []
+
+    subscribe(observer) {
+        observers.add(observer)
+    }
+
+    unsubscribe(observer) {
+        observers.remove(observer)
+    }
+
+    notifyObservers(event, data) {
+        for each observer in observers {
+            observer.update(event, data)
+        }
+    }
+
+    receiveLike(fromUser, toUser) {
+        notifyObservers("LIKE_RECEIVED", fromUser + " liked " + toUser)
+    }
+
+    createMatch(userOne, userTwo) {
+        notifyObservers("MATCH_CREATED", userOne + " matched with " + userTwo)
+    }
+
+    receiveMessage(fromUser, toUser, message) {
+        notifyObservers("MESSAGE_RECEIVED", fromUser + " messaged " + toUser)
+    }
+}
+
+class PushNotification implements Observer {
+    update(event, data) {
+        print("Push Notification: " + event)
+    }
+}
+
+class InAppNotification implements Observer {
+    update(event, data) {
+        print("In-App Notification: " + data)
+    }
+}
+
+class EmailNotification implements Observer {
+    update(event, data) {
+        print("Email Notification: " + data)
+    }
+}
+
+class ChatUpdate implements Observer {
+    update(event, data) {
+        if event == "MESSAGE_RECEIVED" {
+            print("Chat Screen Updated")
+        }
+    }
+}
+
+MAIN:
+datingApp = new DatingAppEventSystem()
+
+push = new PushNotification()
+inApp = new InAppNotification()
+email = new EmailNotification()
+chat = new ChatUpdate()
+
+datingApp.subscribe(push)
+datingApp.subscribe(inApp)
+datingApp.subscribe(email)
+datingApp.subscribe(chat)
+
+datingApp.receiveLike("Alex", "Sam")
+datingApp.createMatch("Alex", "Sam")
+datingApp.receiveMessage("Alex", "Sam", "Hi!")
+```
