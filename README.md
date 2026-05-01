@@ -1,4 +1,8 @@
-Here's the full thing:
+# 💘 UPV Freedom Wall Dating App
+
+> **Twist:** Freedom Wall Feature — Crush ng Bayan Reveal
+
+The **UPV Dating App** blends curated matching with an anonymous Freedom Wall, where students can post feelings, catch the campus buzz, and wait for the **Crush ng Bayan** reveal to see who is stealing hearts across the Miagao campus. The app is designed to seamlessly manage various student profile types while letting you stack extra features, like verified badges, to stand out from the crowd. With instant updates for every like, match, and message, you are always in the loop for every campus *ganap*.
 
 ---
 
