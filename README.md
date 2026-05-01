@@ -183,20 +183,141 @@ class FreedomWallPage:
 
 ---
 
+## 🧩 Design Pattern #2: Structural — Decorator
 
+### Pattern
 
+**Decorator**
 
+Applied to: **Adding badges, boosts, or profile features**
 
+### Concept in Conyo
+
+The Decorator Pattern is used when you want to add extra features to an object without changing its original structure. Instead na i-rewrite mo ang whole class, you just **wrap** it with additional behavior.
+
+Sa dating app, imagine mo yung basic user profile: name, age, and bio. Pero siyempre, users want extra features like:
+
+- Verified badge
+- Boost profile
+- Premium styling
+
+Instead na gumawa ng iba’t ibang subclasses like `PremiumUser`, `VerifiedUser`, and `BoostedUser`, we decorate the base profile dynamically.
+
+So parang: “Ay gusto ko may badge + boost + highlight... sige, i-stack lang natin as decorators.”
+
+### Visual Diagram
+
+#### ❌ Without Decorator
+
+```mermaid
+classDiagram
+    class User {
+        +name
+        +bio
+        +display()
+    }
+
+    class VerifiedUser
+    class BoostedUser
+    class PremiumUser
+    class VerifiedBoostedPremiumUser
+
+    User <|-- VerifiedUser
+    User <|-- BoostedUser
+    User <|-- PremiumUser
+    User <|-- VerifiedBoostedPremiumUser
+```
+
+#### ✅ With Decorator
+
+```mermaid
+classDiagram
+    class User {
+        +display()
+    }
+
+    class BasicUser {
+        +display()
+    }
+
+    class VerifiedBadge {
+        +display()
+    }
+
+    class BoostFeature {
+        +display()
+    }
+
+    class PremiumStyle {
+        +display()
+    }
+
+    User <|-- BasicUser
+    BasicUser <|-- VerifiedBadge
+    VerifiedBadge <|-- BoostFeature
+    BoostFeature <|-- PremiumStyle
 
 ```
 
+### Why it Works Nga
 
+| Approach | Result |
+| --- | --- |
+| ✅ **With Decorator** | Isang base user lang, then features can be added dynamically. Pwedeng **Verified** lang, **Verified + Boost**, or all features, without creating a new class for every combination. |
+| ❌ **Without Decorator** | Ang daming subclasses. Kada combination ng features kailangan ng bagong class, which becomes hard to maintain and extend. |
 
+### Pseudocode
 
+```text
+interface User {
+    display()
+}
 
+class BasicUser implements User {
+    display() {
+        print("Basic Profile")
+    }
+}
 
+class UserDecorator implements User {
+    protected User user
 
+    constructor(user) {
+        this.user = user
+    }
 
+    display() {
+        user.display()
+    }
+}
 
+class VerifiedBadge extends UserDecorator {
+    display() {
+        user.display()
+        print("+ Verified Badge")
+    }
+}
 
+class BoostFeature extends UserDecorator {
+    display() {
+        user.display()
+        print("+ Boosted Profile")
+    }
+}
+
+class PremiumStyle extends UserDecorator {
+    display() {
+        user.display()
+        print("+ Premium Design")
+    }
+}
+
+MAIN:
+user = new BasicUser()
+
+user = new VerifiedBadge(user)
+user = new BoostFeature(user)
+user = new PremiumStyle(user)
+
+user.display()
 ```
